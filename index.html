@@ -1563,7 +1563,7 @@ function renderStats(etf, s, e, O) {
   // wrong in two independent ways: it measures spread around the average loss instead
   // of around the target, and it divides by the number of losses rather than by the
   // whole sample. On this board the two errors did not cancel -- the denominator
-  // dominated and every Sortino on the page read about 23% low (Top 3 0.898 against a
+  // dominated and every Sortino on the page read about 23% low (Nomic 0.898 against a
   // correct 1.171). Both tabs read this one function, so they cannot drift apart.
   //
   // MAR is 0, not rf, while the numerator carries the rf subtraction. That is the
@@ -1579,7 +1579,7 @@ function renderStats(etf, s, e, O) {
   if (P) {
     const pm={}; for(let i=0;i<P.dates.length;i++) pm[P.dates[i]]=P.close[i];
     // The reconstructed strategy curves are stamped against the PREVIOUS close, so
-    // the benchmark has to be lagged to match or the correlation collapses. The Top 3
+    // the benchmark has to be lagged to match or the correlation collapses. The Nomic
     // portfolio is marked on the same day's closes and must NOT be lagged -- doing so
     // gave it a beta of -0.027, which is the tell for exactly this mistake.
     const LAG = (O.lagBench===false) ? 0 : 1;
@@ -1635,7 +1635,7 @@ function renderStats(etf, s, e, O) {
     const eps=(O.eps || DATA.episodes[etf] || []).filter(x=>!x.open && x.start_date>=s && x.start_date<=e);
     // Clearing the Net Avoided tile is easy to forget on the early return below,
     // and a stale figure there reads as a real one. One helper, called from both.
-    // The Top 3 portfolio reuses this function but has no net-avoided tile, because
+    // The Nomic portfolio reuses this function but has no net-avoided tile, because
     // its positions carry no avoided/missed footnote. Missing elements are normal.
     const clearNA = () => {
       const lab=document.getElementById(PFX+'na-lab'); if(lab) lab.textContent='Net Avoided';
@@ -1711,7 +1711,7 @@ function exportLedgerCSV() {
   downloadCSV(rows, header, 'apex_episode_ledger_'+etf);
 }
 
-// ---------- TAB: Top 3 ----------
+// ---------- TAB: APEX Nomic ----------
 // The portfolio is a series of POSITIONS, not episodes: one continuous holding of
 // one fund from the day it entered the three to the day it left. renderStats is
 // reused untouched by mapping those positions onto the shape it expects.
@@ -1759,7 +1759,7 @@ function tp3Pan(frac){
   if(nb>b.hi){ nb=b.hi; na=b.hi-span; }
   s.value=_tp3fmt(na); e.value=_tp3fmt(nb); renderTop3();
 }
-// ---------- Top 3: collapsible sections ----------
+// ---------- Nomic: collapsible sections ----------
 // Two independent toggles. The stats block is 22 tiles and three paragraphs of
 // method; on a laptop it pushes the curve below the fold, which is the one thing
 // people open this tab to look at. Re-render on reveal because an SVG laid out
@@ -1776,7 +1776,7 @@ function toggleTop3Equity(){
   if(w.style.display==='none'){ w.style.display=''; b.textContent='Hide chart'; renderTop3(); }
   else { w.style.display='none'; b.textContent='Show chart'; }
 }
-// ---------- Top 3: crosshair ----------
+// ---------- Nomic: crosshair ----------
 var _tp3c=null;
 function tp3CrossLeave(){ const g=document.getElementById('tp3-cross'); if(g) g.innerHTML=''; }
 function tp3CrossMove(ev){
@@ -1809,7 +1809,7 @@ function tp3CrossMove(ev){
      ((av/c.base-1)>=0?'+':'')+((av/c.base-1)*100).toFixed(1)+'% since '+c.start+'</text>';
   g.innerHTML=h;
 }
-// ---------- Top 3: statistics for the SELECTED period only ----------
+// ---------- Nomic: statistics for the SELECTED period only ----------
 // The tiles above already respect the date window, but they are 22 boxes deep. This
 // is the four numbers that actually answer "what happened between these two dates",
 // with the benchmark on the same rows. CAGR and Sortino are suppressed on very short
