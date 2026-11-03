@@ -265,6 +265,7 @@ const MP = (window.J3_MP_PAYLOAD||{});
 const CFG = (window.J3_MP_CONFIG||{});
 const PPY = CFG.periodsPerYear || 252;              // 252=daily equity, 52=weekly
 const RF  = (CFG.riskFreeRate==null?0:CFG.riskFreeRate);  // annual risk-free for Sharpe/Sortino
+const RFP = Math.pow(1+RF,1/PPY)-1;
 const D=MP.dates, P=MP.port, SPYS=MP.spy, UPROS=MP.upro;
 // Benchmark labels are configurable. The template shipped with SPY/UPRO
 // hardcoded in eight places; APEX runs QQQ + TQQQ buy-and-hold on one page
@@ -283,9 +284,9 @@ const usd=x=>'$'+Math.round(x).toLocaleString('en-US');
 function sstats(eq,ds){
   const r=wret(eq),m=mean(r),s=std(r),y=yrs(ds[0],ds[ds.length-1]);
   const cagr=Math.pow(eq[eq.length-1]/eq[0],1/y)-1, vol=s*Math.sqrt(PPY);
-  const exret=(Math.pow(1+m,PPY)-1)-RF; // mean period return annualized, in excess of the configured risk-free rate
+  const ex=r.map(x=>x-RFP), exret=mean(ex)*PPY;
   const sharpe=vol?exret/vol:NaN;
-  const dn=r.filter(x=>x<0), dstd=dn.length?Math.sqrt(dn.reduce((a,b)=>a+b*b,0)/r.length)*Math.sqrt(PPY):0;
+  const dstd=Math.sqrt(ex.reduce((a,x)=>a+(x<0?x*x:0),0)/ex.length)*Math.sqrt(PPY);
   const so=dstd?exret/dstd:NaN, mdd=maxdd(eq);
   return {tot:eq[eq.length-1]/eq[0]-1,cagr,vol,sharpe,sortino:so,mdd,rdd:mdd?cagr/Math.abs(mdd):NaN,eq0:eq[0],eq1:eq[eq.length-1]};
 }
@@ -293,7 +294,7 @@ function ddrec(eq,ds){let pk=eq[0],pki=0,dd=0,ti=0,ppi=0;
   for(let i=0;i<eq.length;i++){if(eq[i]>pk){pk=eq[i];pki=i;}const d=eq[i]/pk-1;if(d<dd){dd=d;ti=i;ppi=pki;}}
   for(let i=ti;i<eq.length;i++){if(eq[i]>=eq[ppi])return Math.round((new Date(ds[i])-new Date(ds[ti]))/864e5);}
   return null;}
-function reg(pr,br){const mp=mean(pr),mb=mean(br);let cov=0,vb=0;
+function reg(pr,br){pr=pr.map(x=>x-RFP);br=br.map(x=>x-RFP);const mp=mean(pr),mb=mean(br);let cov=0,vb=0;
   for(let i=0;i<pr.length;i++){cov+=(pr[i]-mp)*(br[i]-mb);vb+=(br[i]-mb)*(br[i]-mb);}
   const beta=cov/vb,alpha=(mp-beta*mb)*PPY,diff=pr.map((x,i)=>x-br[i]),te=std(diff)*Math.sqrt(PPY);
   return {beta,alpha,te,ir:te?(mean(diff)*PPY)/te:NaN,treynor:beta?(mp*PPY)/beta:NaN};}
